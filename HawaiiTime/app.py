@@ -89,6 +89,7 @@ def precipitation():
     session.close()
 
     return jsonify(prec_dict)
+    #return prec_dict
 
 @app.route("/api/v1.0/stations")
 def stations():
@@ -101,20 +102,24 @@ def stations():
     results = session.query(Station.station, Station.name).all()
 
     # Save the query to a dictionary
-    station_dict = dict()
+    station_list = list()
     
     for result in results:
-        station_dict[str(result[0])] = str(result[1])
+        station_dict = dict()
+        
+        station_dict["station_id"] = str(result[0])
+        station_dict["name"] = str(result[1])
+        station_list.append(station_dict)
     
     # Close the session
     session.close()
 
-    return jsonify(station_dict)
+    return jsonify(station_list)
 
 @app.route("/api/v1.0/tobs")
 def temperature():
     """
-    Return the min, max, average temperature for most active station
+    Return temperature for most active station
     for the past year in the database.
     """
     
@@ -129,15 +134,19 @@ def temperature():
     
     
     # Save the query to a dictionary
-    tobs_dict = dict()
+    tobs_list = list()
     
     for result in results:
-        tobs_dict[str(result[0])] = float(result[1])
+        tobs_dict = dict()
+        
+        tobs_dict["date"] = str(result[0])
+        tobs_dict["temperature"] = float(result[1])
+        tobs_list.append(tobs_dict)
     
     # Close the session
     session.close()
     
-    return jsonify(tobs_dict)
+    return jsonify(tobs_list)
                         
 @app.route("/api/v1.0/<start>")
 def temperature_from(start):
@@ -156,7 +165,7 @@ def temperature_from(start):
                             func.max(Measurement.tobs)).\
                             filter(Measurement.date >= start_date).all()
         
-    tobs_list = [float(str(results[0][0])), float(str(results[0][1])), float(str(results[0][2]))]
+    tobs_list = [float(results[0][0]), float(results[0][1]), float(results[0][2])]
     
     # Close the session
     session.close()
@@ -184,7 +193,7 @@ def temperature_between(start, end):
                             filter(Measurement.date >= start_date).\
                             filter(Measurement.date <= end_date).all()
         
-    tobs_list = [float(str(results[0][0])), float(str(results[0][1])), float(str(results[0][2]))]
+    tobs_list = [float(results[0][0]), float(results[0][1]), float(results[0][2])]
     
     # Close the session
     session.close()
@@ -193,4 +202,4 @@ def temperature_between(start, end):
     
 # start the application if it running in the console
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5002)
